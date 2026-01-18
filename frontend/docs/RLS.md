@@ -116,3 +116,44 @@ In your application:
 - All users can read
 - Only owners can write
 - Use `auth.uid() = user_id` for write policies
+
+## Phase 1 RLS Policies
+
+All Phase 1 tables use the standard user-owned pattern with `auth.uid() = user_id` for all operations.
+
+### Special Cases
+
+#### profiles
+Uses `auth.uid() = id` (not `user_id`) because it's one-to-one with auth.users:
+```sql
+create policy "Users can view own profile"
+  on profiles for select
+  using (auth.uid() = id);
+```
+
+#### quiz_items
+Uses a subquery to check ownership via the parent `quiz_sessions` table:
+```sql
+create policy "Users can view own quiz items"
+  on quiz_items for select
+  using (
+    exists (
+      select 1 from public.quiz_sessions
+      where quiz_sessions.id = quiz_items.session_id
+      and quiz_sessions.user_id = auth.uid()
+    )
+  );
+```
+
+This ensures users can only access quiz items from their own quiz sessions.
+
+### All Tables Have RLS Enabled
+
+- `profiles` - One-to-one with auth.users
+- `decks` - User-owned
+- `notes` - User-owned
+- `cards` - User-owned
+- `card_state` - User-owned
+- `reviews` - User-owned
+- `quiz_sessions` - User-owned
+- `quiz_items` - User-owned (via quiz_sessions relationship)

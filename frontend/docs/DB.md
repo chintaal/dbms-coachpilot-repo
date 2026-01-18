@@ -75,3 +75,101 @@ This ensures:
 - Each row is tied to a user via `user_id`
 - RLS policies automatically filter data by `auth.uid()`
 - Users can only access their own data
+
+## Phase 1 Tables
+
+### profiles
+User profiles (one-to-one with auth.users)
+- `id` (uuid, PK, references auth.users)
+- `full_name` (text)
+- `created_at` (timestamptz)
+
+### decks
+Flashcard decks
+- `id` (uuid, PK)
+- `user_id` (uuid, references auth.users)
+- `title` (text)
+- `description` (text)
+- `created_at`, `updated_at` (timestamptz)
+
+### notes
+Source notes for cards (for future AI processing)
+- `id` (uuid, PK)
+- `user_id` (uuid, references auth.users)
+- `source_type` (text)
+- `raw_text` (text)
+- `created_at` (timestamptz)
+
+### cards
+Flashcard content
+- `id` (uuid, PK)
+- `user_id` (uuid, references auth.users)
+- `deck_id` (uuid, references decks)
+- `note_id` (uuid, references notes, nullable)
+- `front` (text)
+- `back` (text)
+- `tags` (text[])
+- `created_at`, `updated_at` (timestamptz)
+
+### card_state
+Spaced repetition state
+- `card_id` (uuid, PK, references cards)
+- `user_id` (uuid, references auth.users)
+- `due_at` (timestamptz)
+- `interval_days` (int)
+- `ease_factor` (numeric)
+- `reps` (int)
+- `lapses` (int)
+- `last_reviewed_at` (timestamptz, nullable)
+
+### reviews
+Review history log
+- `id` (uuid, PK)
+- `user_id` (uuid, references auth.users)
+- `card_id` (uuid, references cards)
+- `rating` (int, 0=again, 1=hard, 2=good, 3=easy)
+- `reviewed_at` (timestamptz)
+- `prev_due_at`, `next_due_at` (timestamptz)
+- `prev_interval_days`, `next_interval_days` (int)
+- `prev_ease_factor`, `next_ease_factor` (numeric)
+
+### quiz_sessions
+Quiz session metadata
+- `id` (uuid, PK)
+- `user_id` (uuid, references auth.users)
+- `deck_id` (uuid, references decks)
+- `mode` (text)
+- `total` (int)
+- `correct` (int)
+- `started_at`, `ended_at` (timestamptz)
+
+### quiz_items
+Individual quiz answers
+- `id` (uuid, PK)
+- `session_id` (uuid, references quiz_sessions)
+- `card_id` (uuid, references cards)
+- `is_correct` (boolean)
+- `answered_at` (timestamptz)
+
+## Database Functions
+
+### apply_review(card_id uuid, rating int)
+Atomically applies a review rating:
+- Updates `card_state` with new interval, ease_factor, reps, lapses, due_at
+- Inserts a record into `reviews` table
+- Returns JSONB with updated state
+
+Rating values:
+- 0 = Again (reset, penalize)
+- 1 = Hard (reduce interval/ease)
+- 2 = Good (normal progression)
+- 3 = Easy (increase interval/ease)
+
+## Indexes
+
+Key indexes for performance:
+- `decks(user_id)`
+- `cards(user_id, deck_id)`
+- `card_state(user_id, due_at)` - critical for review queue
+- `card_state(user_id, due_at) WHERE due_at <= now()` - partial index for active reviews
+- `reviews(user_id, card_id, reviewed_at desc)`
