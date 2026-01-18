@@ -1,9 +1,11 @@
 import { getDeck } from '@/lib/db/decks'
 import { listCards } from '@/lib/db/cards'
+import { listTemplates } from '@/lib/db/templates'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { CreateCardForm } from './CreateCardForm'
 import { CardList } from './CardList'
+import { DeckActions } from './DeckActions'
 
 export default async function DeckDetailPage({
   params,
@@ -15,12 +17,20 @@ export default async function DeckDetailPage({
   try {
     const deck = await getDeck(deckId)
     let cards = []
+    let templates = []
     try {
       cards = await listCards(deckId)
     } catch (error) {
       // If tables don't exist yet, return empty array
       console.error('Failed to load cards:', error)
       cards = []
+    }
+    try {
+      templates = await listTemplates()
+    } catch (error) {
+      // If tables don't exist yet, return empty array
+      console.error('Failed to load templates:', error)
+      templates = []
     }
 
     return (
@@ -46,11 +56,13 @@ export default async function DeckDetailPage({
           </p>
         </div>
 
+        <DeckActions deckId={deckId} />
+
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-black dark:text-zinc-50 mb-4">
             Add New Card
           </h2>
-          <CreateCardForm deckId={deckId} />
+          <CreateCardForm deckId={deckId} templates={templates} />
         </div>
 
         <div>

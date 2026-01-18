@@ -52,6 +52,12 @@ export default async function AppLayout({
               >
                 Voice
               </Link>
+              <Link
+                href="/app/templates"
+                className="text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+              >
+                Templates
+              </Link>
               <form action={async () => {
                 'use server'
                 const supabase = await createClient()

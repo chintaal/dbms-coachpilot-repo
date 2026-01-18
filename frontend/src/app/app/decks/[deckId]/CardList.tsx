@@ -52,13 +52,41 @@ export function CardList({ cards, deckId }: { cards: Card[]; deckId: string }) {
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                   Front:
                 </p>
-                <p className="text-black dark:text-zinc-50">{card.front}</p>
+                {card.front_image_url && (
+                  <img
+                    src={card.front_image_url}
+                    alt="Card front"
+                    className="mb-2 max-w-full h-auto rounded-md max-h-48"
+                  />
+                )}
+                {card.front_html ? (
+                  <div
+                    className="prose prose-sm dark:prose-invert max-w-none text-black dark:text-zinc-50"
+                    dangerouslySetInnerHTML={{ __html: card.front_html }}
+                  />
+                ) : (
+                  <p className="text-black dark:text-zinc-50">{card.front}</p>
+                )}
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                   Back:
                 </p>
-                <p className="text-black dark:text-zinc-50">{card.back}</p>
+                {card.back_image_url && (
+                  <img
+                    src={card.back_image_url}
+                    alt="Card back"
+                    className="mb-2 max-w-full h-auto rounded-md max-h-48"
+                  />
+                )}
+                {card.back_html ? (
+                  <div
+                    className="prose prose-sm dark:prose-invert max-w-none text-black dark:text-zinc-50"
+                    dangerouslySetInnerHTML={{ __html: card.back_html }}
+                  />
+                ) : (
+                  <p className="text-black dark:text-zinc-50">{card.back}</p>
+                )}
               </div>
               {card.tags && card.tags.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">

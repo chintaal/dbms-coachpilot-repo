@@ -9,11 +9,16 @@ export async function createCard(
   front: string,
   back: string,
   tags?: string[],
-  noteId?: string
+  noteId?: string,
+  frontHtml?: string,
+  backHtml?: string,
+  frontImageUrl?: string,
+  backImageUrl?: string,
+  templateId?: string
 ) {
   try {
     await requireUser()
-    const card = await db.createCard(deckId, front, back, tags, noteId)
+    const card = await db.createCard(deckId, front, back, tags, noteId, frontHtml, backHtml, frontImageUrl, backImageUrl, templateId)
     revalidatePath(`/app/decks/${deckId}`)
     return { success: true, card }
   } catch (error) {

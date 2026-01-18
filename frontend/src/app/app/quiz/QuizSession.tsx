@@ -155,10 +155,38 @@ export function QuizSession({ decks }: { decks: Deck[] }) {
       </div>
       <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8">
         <div className="mb-8 min-h-[200px]">
-          <p className="text-xl text-black dark:text-zinc-50 mb-4">{currentCard.front}</p>
+          {currentCard.front_image_url && (
+            <img
+              src={currentCard.front_image_url}
+              alt="Card front"
+              className="mb-4 max-w-full h-auto rounded-md max-h-64"
+            />
+          )}
+          {currentCard.front_html ? (
+            <div
+              className="prose prose-sm dark:prose-invert max-w-none text-xl text-black dark:text-zinc-50 mb-4"
+              dangerouslySetInnerHTML={{ __html: currentCard.front_html }}
+            />
+          ) : (
+            <p className="text-xl text-black dark:text-zinc-50 mb-4">{currentCard.front}</p>
+          )}
           {isRevealed && (
             <div className="mt-6 border-t border-gray-200 dark:border-gray-800 pt-6">
-              <p className="text-xl text-black dark:text-zinc-50">{currentCard.back}</p>
+              {currentCard.back_image_url && (
+                <img
+                  src={currentCard.back_image_url}
+                  alt="Card back"
+                  className="mb-4 max-w-full h-auto rounded-md max-h-64"
+                />
+              )}
+              {currentCard.back_html ? (
+                <div
+                  className="prose prose-sm dark:prose-invert max-w-none text-xl text-black dark:text-zinc-50"
+                  dangerouslySetInnerHTML={{ __html: currentCard.back_html }}
+                />
+              ) : (
+                <p className="text-xl text-black dark:text-zinc-50">{currentCard.back}</p>
+              )}
             </div>
           )}
         </div>

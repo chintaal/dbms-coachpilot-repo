@@ -3,17 +3,39 @@
 import { useState, useTransition, useOptimistic } from 'react'
 import { createCard } from '@/app/actions/cards'
 import { useRouter } from 'next/navigation'
+import { RichTextEditor } from '@/components/editor/RichTextEditor'
+import { ImageUpload } from '@/components/upload/ImageUpload'
 import type { Database } from '@/types/supabase'
 
 // Use conditional types to handle cases where tables don't exist yet
 type Card = Database['public']['Tables']['cards'] extends { Row: infer R } ? R : any
+type Template = Database['public']['Tables']['card_templates'] extends { Row: infer R } ? R : any
 
-export function CreateCardForm({ deckId }: { deckId: string }) {
+export function CreateCardForm({ deckId, templates }: { deckId: string; templates: Template[] }) {
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
   const [front, setFront] = useState('')
+  const [frontHtml, setFrontHtml] = useState('')
+  const [frontImageUrl, setFrontImageUrl] = useState<string | null>(null)
   const [back, setBack] = useState('')
+  const [backHtml, setBackHtml] = useState('')
+  const [backImageUrl, setBackImageUrl] = useState<string | null>(null)
   const [tags, setTags] = useState('')
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+
+  const handleTemplateChange = (templateId: string) => {
+    setSelectedTemplateId(templateId)
+    const template = templates.find((t) => t.id === templateId)
+    if (template) {
+      // For now, just set the templates as placeholders
+      // In a full implementation, you'd have a form to fill in template variables
+      setFront(template.front_template)
+      setFrontHtml('')
+      setBack(template.back_template)
+      setBackHtml('')
+      setTags(template.default_tags?.join(', ') || '')
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,10 +45,26 @@ export function CreateCardForm({ deckId }: { deckId: string }) {
       .filter((t) => t.length > 0)
 
     startTransition(async () => {
-      const result = await createCard(deckId, front, back, tagsArray.length > 0 ? tagsArray : undefined)
+      const result = await createCard(
+        deckId,
+        front,
+        back,
+        tagsArray.length > 0 ? tagsArray : undefined,
+        undefined,
+        frontHtml || undefined,
+        backHtml || undefined,
+        frontImageUrl || undefined,
+        backImageUrl || undefined,
+        selectedTemplateId || undefined
+      )
       if (result.success) {
+        setSelectedTemplateId('')
         setFront('')
+        setFrontHtml('')
+        setFrontImageUrl(null)
         setBack('')
+        setBackHtml('')
+        setBackImageUrl(null)
         setTags('')
         router.refresh()
       } else {
@@ -37,38 +75,73 @@ export function CreateCardForm({ deckId }: { deckId: string }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
+      {templates.length > 0 && (
+        <div>
+          <label
+            htmlFor="template"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Template (optional)
+          </label>
+          <select
+            id="template"
+            value={selectedTemplateId}
+            onChange={(e) => handleTemplateChange(e.target.value)}
+            className="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-black dark:text-zinc-50"
+          >
+            <option value="">None - Create from scratch</option>
+            {templates.map((template) => (
+              <option key={template.id} value={template.id}>
+                {template.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <div>
         <label
           htmlFor="front"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
         >
           Front
         </label>
-        <textarea
-          id="front"
-          required
-          value={front}
-          onChange={(e) => setFront(e.target.value)}
-          rows={3}
-          className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-black dark:text-zinc-50 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        <RichTextEditor
+          content={frontHtml || front}
+          onChange={(html, text) => {
+            setFrontHtml(html)
+            setFront(text)
+          }}
           placeholder="Question or term"
+          className="mt-1"
         />
       </div>
       <div>
         <label
           htmlFor="back"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
         >
           Back
         </label>
-        <textarea
-          id="back"
-          required
-          value={back}
-          onChange={(e) => setBack(e.target.value)}
-          rows={3}
-          className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-black dark:text-zinc-50 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        <RichTextEditor
+          content={backHtml || back}
+          onChange={(html, text) => {
+            setBackHtml(html)
+            setBack(text)
+          }}
           placeholder="Answer or definition"
+          className="mt-1"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <ImageUpload
+          value={frontImageUrl || undefined}
+          onChange={setFrontImageUrl}
+          label="Front Image (optional)"
+        />
+        <ImageUpload
+          value={backImageUrl || undefined}
+          onChange={setBackImageUrl}
+          label="Back Image (optional)"
         />
       </div>
       <div>

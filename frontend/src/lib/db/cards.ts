@@ -60,7 +60,12 @@ export async function createCard(
   front: string,
   back: string,
   tags?: string[],
-  noteId?: string
+  noteId?: string,
+  frontHtml?: string,
+  backHtml?: string,
+  frontImageUrl?: string,
+  backImageUrl?: string,
+  templateId?: string
 ) {
   const supabase = await createClient()
   const {
@@ -80,6 +85,11 @@ export async function createCard(
       back,
       tags: tags || [],
       note_id: noteId || null,
+      front_html: frontHtml || null,
+      back_html: backHtml || null,
+      front_image_url: frontImageUrl || null,
+      back_image_url: backImageUrl || null,
+      template_id: templateId || null,
     })
     .select()
     .single()

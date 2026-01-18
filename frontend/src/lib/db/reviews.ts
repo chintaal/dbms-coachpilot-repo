@@ -6,6 +6,10 @@ type CardWithState = {
   deck_id: string
   front: string
   back: string
+  front_html?: string | null
+  back_html?: string | null
+  front_image_url?: string | null
+  back_image_url?: string | null
   tags: string[] | null
   card_state: {
     due_at: string
@@ -42,6 +46,10 @@ export async function getReviewQueue(limit: number = 20) {
         deck_id,
         front,
         back,
+        front_html,
+        back_html,
+        front_image_url,
+        back_image_url,
         tags
       )
     `
@@ -62,6 +70,10 @@ export async function getReviewQueue(limit: number = 20) {
     deck_id: item.cards.deck_id,
     front: item.cards.front,
     back: item.cards.back,
+    front_html: item.cards.front_html,
+    back_html: item.cards.back_html,
+    front_image_url: item.cards.front_image_url,
+    back_image_url: item.cards.back_image_url,
     tags: item.cards.tags,
     card_state: {
       due_at: item.due_at,

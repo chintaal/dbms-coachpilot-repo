@@ -9,6 +9,10 @@ type CardWithState = {
   deck_id: string
   front: string
   back: string
+  front_html?: string | null
+  back_html?: string | null
+  front_image_url?: string | null
+  back_image_url?: string | null
   tags: string[] | null
   card_state: {
     due_at: string
@@ -76,7 +80,21 @@ export function ReviewCard({ initialCards }: { initialCards: CardWithState[] }) 
           <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
             Front:
           </p>
-          <p className="text-xl text-black dark:text-zinc-50">{currentCard.front}</p>
+          {currentCard.front_image_url && (
+            <img
+              src={currentCard.front_image_url}
+              alt="Card front"
+              className="mb-3 max-w-full h-auto rounded-md max-h-64"
+            />
+          )}
+          {currentCard.front_html ? (
+            <div
+              className="prose prose-sm dark:prose-invert max-w-none text-xl text-black dark:text-zinc-50"
+              dangerouslySetInnerHTML={{ __html: currentCard.front_html }}
+            />
+          ) : (
+            <p className="text-xl text-black dark:text-zinc-50">{currentCard.front}</p>
+          )}
         </div>
 
         {isRevealed && (
@@ -84,7 +102,21 @@ export function ReviewCard({ initialCards }: { initialCards: CardWithState[] }) 
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
               Back:
             </p>
-            <p className="text-xl text-black dark:text-zinc-50">{currentCard.back}</p>
+            {currentCard.back_image_url && (
+              <img
+                src={currentCard.back_image_url}
+                alt="Card back"
+                className="mb-3 max-w-full h-auto rounded-md max-h-64"
+              />
+            )}
+            {currentCard.back_html ? (
+              <div
+                className="prose prose-sm dark:prose-invert max-w-none text-xl text-black dark:text-zinc-50"
+                dangerouslySetInnerHTML={{ __html: currentCard.back_html }}
+              />
+            ) : (
+              <p className="text-xl text-black dark:text-zinc-50">{currentCard.back}</p>
+            )}
           </div>
         )}
       </div>

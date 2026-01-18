@@ -9,12 +9,13 @@ interface LogoProps {
 /**
  * Full Coachpilot logo component that automatically switches
  * between light and dark mode variants based on CSS dark mode.
+ * Uses SVG files for crisp rendering at any size.
  */
 export function Logo({ width = 200, height = 50, className = '' }: LogoProps) {
   return (
     <>
       <Image
-        src="/logos/coachpilot-full-lightmode.png"
+        src="/logos/coachpilot-namelogo-lightmode.svg"
         alt="Coachpilot"
         width={width}
         height={height}
@@ -22,7 +23,7 @@ export function Logo({ width = 200, height = 50, className = '' }: LogoProps) {
         priority
       />
       <Image
-        src="/logos/coachpilot-full-darkmode.png"
+        src="/logos/coachpilot-namelogo-darkmode.svg"
         alt="Coachpilot"
         width={width}
         height={height}
