@@ -1,0 +1,26 @@
+# Database Source of Truth
+
+Source of truth for DB:
+- `frontend/supabase/migrations/*.sql` - All database schema changes
+- `frontend/src/types/supabase.ts` - Generated TypeScript types (DO NOT edit manually)
+
+## Rules
+
+1. **Never invent table/column names** - Always check `frontend/src/types/supabase.ts` first before referencing any database tables or columns.
+
+2. **RLS-first approach** - Row Level Security is enabled by default. Never use `service_role` key on the client side. Use `anon` key with proper RLS policies.
+
+3. **Privileged operations** - Prefer server actions or route handlers for operations that require elevated permissions. Never expose service_role keys to the client.
+
+4. **After DB changes** - When you make any changes in Supabase Cloud dashboard:
+   ```bash
+   cd frontend
+   npm run sb:sync
+   ```
+   This will pull the schema and regenerate types.
+
+5. **User-owned tables pattern** - Tables that belong to users should have:
+   ```sql
+   user_id uuid references auth.users(id) not null
+   ```
+   With RLS policies that check `auth.uid() = user_id`.
