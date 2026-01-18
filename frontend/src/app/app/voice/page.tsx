@@ -2,7 +2,14 @@ import { listDecks } from '@/lib/db/decks'
 import { VoiceCardForm } from './VoiceCardForm'
 
 export default async function VoicePage() {
-  const decks = await listDecks()
+  let decks = []
+  try {
+    decks = await listDecks()
+  } catch (error) {
+    // If tables don't exist yet, return empty array
+    console.error('Failed to load decks:', error)
+    decks = []
+  }
 
   return (
     <div>

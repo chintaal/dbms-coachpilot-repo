@@ -11,10 +11,17 @@ export async function createCard(
   tags?: string[],
   noteId?: string
 ) {
-  await requireUser()
-  const card = await db.createCard(deckId, front, back, tags, noteId)
-  revalidatePath(`/app/decks/${deckId}`)
-  return { success: true, card }
+  try {
+    await requireUser()
+    const card = await db.createCard(deckId, front, back, tags, noteId)
+    revalidatePath(`/app/decks/${deckId}`)
+    return { success: true, card }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to create card' 
+    }
+  }
 }
 
 export async function updateCard(
@@ -22,15 +29,29 @@ export async function updateCard(
   deckId: string,
   updates: { front?: string; back?: string; tags?: string[] }
 ) {
-  await requireUser()
-  const card = await db.updateCard(cardId, updates)
-  revalidatePath(`/app/decks/${deckId}`)
-  return { success: true, card }
+  try {
+    await requireUser()
+    const card = await db.updateCard(cardId, updates)
+    revalidatePath(`/app/decks/${deckId}`)
+    return { success: true, card }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to update card' 
+    }
+  }
 }
 
 export async function deleteCard(cardId: string, deckId: string) {
-  await requireUser()
-  await db.deleteCard(cardId)
-  revalidatePath(`/app/decks/${deckId}`)
-  return { success: true }
+  try {
+    await requireUser()
+    await db.deleteCard(cardId)
+    revalidatePath(`/app/decks/${deckId}`)
+    return { success: true }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to delete card' 
+    }
+  }
 }

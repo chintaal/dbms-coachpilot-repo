@@ -4,8 +4,17 @@ import { ImportForm } from './ImportForm'
 import { NotesList } from './NotesList'
 
 export default async function ImportPage() {
-  const decks = await listDecks()
-  const notes = await listNotes()
+  let decks = []
+  let notes = []
+  try {
+    decks = await listDecks()
+    notes = await listNotes()
+  } catch (error) {
+    // If tables don't exist yet, return empty arrays
+    console.error('Failed to load data:', error)
+    decks = []
+    notes = []
+  }
 
   return (
     <div>

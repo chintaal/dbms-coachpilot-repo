@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { Database } from '@/types/supabase'
 
-type QuizSession = Database['public']['Tables']['quiz_sessions']['Row']
-type QuizItem = Database['public']['Tables']['quiz_items']['Row']
+// Use conditional types to handle cases where tables don't exist yet
+type QuizSession = Database['public']['Tables']['quiz_sessions'] extends { Row: infer R } ? R : any
+type QuizItem = Database['public']['Tables']['quiz_items'] extends { Row: infer R } ? R : any
 
 export async function createQuizSession(deckId: string, mode: string) {
   const supabase = await createClient()
@@ -27,7 +28,8 @@ export async function createQuizSession(deckId: string, mode: string) {
     .single()
 
   if (error) {
-    throw error
+    // Convert Supabase error to plain Error for serialization
+    throw new Error(error.message || 'Database operation failed')
   }
 
   return data
@@ -51,7 +53,8 @@ export async function getQuizSession(sessionId: string) {
     .single()
 
   if (error) {
-    throw error
+    // Convert Supabase error to plain Error for serialization
+    throw new Error(error.message || 'Database operation failed')
   }
 
   return data
@@ -83,7 +86,8 @@ export async function submitQuizAnswer(
     .single()
 
   if (error) {
-    throw error
+    // Convert Supabase error to plain Error for serialization
+    throw new Error(error.message || 'Database operation failed')
   }
 
   return data
@@ -112,7 +116,8 @@ export async function endQuizSession(sessionId: string, total: number, correct: 
     .single()
 
   if (error) {
-    throw error
+    // Convert Supabase error to plain Error for serialization
+    throw new Error(error.message || 'Database operation failed')
   }
 
   return data
@@ -138,7 +143,8 @@ export async function getQuizItems(sessionId: string) {
     .order('answered_at', { ascending: true })
 
   if (error) {
-    throw error
+    // Convert Supabase error to plain Error for serialization
+    throw new Error(error.message || 'Database operation failed')
   }
 
   return data || []

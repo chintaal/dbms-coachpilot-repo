@@ -14,14 +14,15 @@ export function CreateDeckModal() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     startTransition(async () => {
-      try {
-        await createDeck(title, description || undefined)
+      const result = await createDeck(title, description || undefined)
+      if (result.success) {
         setIsOpen(false)
         setTitle('')
         setDescription('')
         router.refresh()
-      } catch (error) {
-        console.error('Failed to create deck:', error)
+      } else {
+        // Show error to user (you could add a toast notification here)
+        console.error('Failed to create deck:', result.error)
       }
     })
   }

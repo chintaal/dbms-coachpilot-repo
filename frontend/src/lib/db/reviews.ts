@@ -52,7 +52,8 @@ export async function getReviewQueue(limit: number = 20) {
     .limit(limit)
 
   if (error) {
-    throw error
+    // Convert Supabase error to plain Error for serialization
+    throw new Error(error.message || 'Database operation failed')
   }
 
   // Transform the data to a flatter structure
@@ -91,7 +92,8 @@ export async function applyReview(cardId: string, rating: 0 | 1 | 2 | 3) {
   })
 
   if (error) {
-    throw error
+    // Convert Supabase error to plain Error for serialization
+    throw new Error(error.message || 'Database operation failed')
   }
 
   return data

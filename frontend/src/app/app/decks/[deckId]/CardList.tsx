@@ -5,7 +5,8 @@ import { deleteCard } from '@/app/actions/cards'
 import { useRouter } from 'next/navigation'
 import type { Database } from '@/types/supabase'
 
-type Card = Database['public']['Tables']['cards']['Row']
+// Use conditional types to handle cases where tables don't exist yet
+type Card = Database['public']['Tables']['cards'] extends { Row: infer R } ? R : any
 
 export function CardList({ cards, deckId }: { cards: Card[]; deckId: string }) {
   const [isPending, startTransition] = useTransition()
@@ -18,11 +19,11 @@ export function CardList({ cards, deckId }: { cards: Card[]; deckId: string }) {
   const handleDelete = async (cardId: string) => {
     startTransition(async () => {
       setOptimisticCards(cardId)
-      try {
-        await deleteCard(cardId, deckId)
+      const result = await deleteCard(cardId, deckId)
+      if (result.success) {
         router.refresh()
-      } catch (error) {
-        console.error('Failed to delete card:', error)
+      } else {
+        console.error('Failed to delete card:', result.error)
         router.refresh() // Refresh to restore state on error
       }
     })

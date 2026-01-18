@@ -5,8 +5,9 @@ import { useState } from 'react'
 import { createQuizSession, submitQuizAnswer, endQuizSession } from '@/app/actions/quiz'
 import type { Database } from '@/types/supabase'
 
-type Deck = Database['public']['Tables']['decks']['Row']
-type Card = Database['public']['Tables']['cards']['Row']
+// Use conditional types to handle cases where tables don't exist yet
+type Deck = Database['public']['Tables']['decks'] extends { Row: infer R } ? R : any
+type Card = Database['public']['Tables']['cards'] extends { Row: infer R } ? R : any
 
 export function QuizSession({ decks }: { decks: Deck[] }) {
   const [selectedDeckId, setSelectedDeckId] = useState<string>('')
@@ -22,9 +23,9 @@ export function QuizSession({ decks }: { decks: Deck[] }) {
     if (!selectedDeckId) return
 
     setLoading(true)
-    try {
-      const session = await createQuizSession(selectedDeckId, 'front->back')
-      setSessionId(session.session.id)
+    const sessionResult = await createQuizSession(selectedDeckId, 'front->back')
+    if (sessionResult.success) {
+      setSessionId(sessionResult.session.id)
 
       // Load cards - we need to fetch them
       // For now, we'll need an API route or server action
@@ -38,11 +39,10 @@ export function QuizSession({ decks }: { decks: Deck[] }) {
         setIsFinished(false)
         setAnswers({})
       }
-    } catch (error) {
-      console.error('Failed to start quiz:', error)
-    } finally {
-      setLoading(false)
+    } else {
+      console.error('Failed to start quiz:', sessionResult.error)
     }
+    setLoading(false)
   }
 
   const handleAnswer = async (isCorrect: boolean) => {
@@ -52,7 +52,10 @@ export function QuizSession({ decks }: { decks: Deck[] }) {
     const newAnswers = { ...answers, [cardId]: isCorrect }
     setAnswers(newAnswers)
 
-    await submitQuizAnswer(sessionId, cardId, isCorrect)
+    const answerResult = await submitQuizAnswer(sessionId, cardId, isCorrect)
+    if (!answerResult.success) {
+      console.error('Failed to submit answer:', answerResult.error)
+    }
 
     if (currentIndex < cards.length - 1) {
       setCurrentIndex(currentIndex + 1)
@@ -60,8 +63,12 @@ export function QuizSession({ decks }: { decks: Deck[] }) {
     } else {
       // Quiz finished
       const correctCount = Object.values(newAnswers).filter((v) => v).length
-      await endQuizSession(sessionId, cards.length, correctCount)
-      setIsFinished(true)
+      const endResult = await endQuizSession(sessionId, cards.length, correctCount)
+      if (endResult.success) {
+        setIsFinished(true)
+      } else {
+        console.error('Failed to end quiz:', endResult.error)
+      }
     }
   }
 

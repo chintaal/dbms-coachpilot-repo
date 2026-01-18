@@ -110,11 +110,10 @@ create index if not exists idx_cards_user_deck on public.cards(user_id, deck_id)
 -- Card state indexes (critical for review queue performance)
 create index if not exists idx_card_state_user_id on public.card_state(user_id);
 create index if not exists idx_card_state_due_at on public.card_state(due_at);
-create index if not exists idx_card_state_user_due on public.card_state(user_id, due_at);
--- Partial index for active reviews (due cards)
-create index if not exists idx_card_state_active_reviews 
-  on public.card_state(user_id, due_at) 
-  where due_at <= now();
+-- Composite index for review queue queries (user_id, due_at)
+-- This efficiently supports: WHERE user_id = $1 AND due_at <= now() ORDER BY due_at
+create index if not exists idx_card_state_user_dueat
+  on public.card_state(user_id, due_at);
 
 -- Reviews indexes
 create index if not exists idx_reviews_user_id on public.reviews(user_id);

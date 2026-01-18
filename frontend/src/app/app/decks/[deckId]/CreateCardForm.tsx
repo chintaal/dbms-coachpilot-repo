@@ -5,7 +5,8 @@ import { createCard } from '@/app/actions/cards'
 import { useRouter } from 'next/navigation'
 import type { Database } from '@/types/supabase'
 
-type Card = Database['public']['Tables']['cards']['Row']
+// Use conditional types to handle cases where tables don't exist yet
+type Card = Database['public']['Tables']['cards'] extends { Row: infer R } ? R : any
 
 export function CreateCardForm({ deckId }: { deckId: string }) {
   const [front, setFront] = useState('')
@@ -22,14 +23,14 @@ export function CreateCardForm({ deckId }: { deckId: string }) {
       .filter((t) => t.length > 0)
 
     startTransition(async () => {
-      try {
-        await createCard(deckId, front, back, tagsArray.length > 0 ? tagsArray : undefined)
+      const result = await createCard(deckId, front, back, tagsArray.length > 0 ? tagsArray : undefined)
+      if (result.success) {
         setFront('')
         setBack('')
         setTags('')
         router.refresh()
-      } catch (error) {
-        console.error('Failed to create card:', error)
+      } else {
+        console.error('Failed to create card:', result.error)
       }
     })
   }

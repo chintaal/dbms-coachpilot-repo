@@ -50,16 +50,16 @@ export function ReviewCard({ initialCards }: { initialCards: CardWithState[] }) 
   const handleRating = async (rating: 0 | 1 | 2 | 3) => {
     startTransition(async () => {
       setOptimisticCards(currentCard.id)
-      try {
-        await applyReview(currentCard.id, rating)
+      const result = await applyReview(currentCard.id, rating)
+      if (result.success) {
         setIsRevealed(false)
         if (currentIndex < optimisticCards.length - 1) {
           setCurrentIndex(currentIndex + 1)
         } else {
           router.refresh()
         }
-      } catch (error) {
-        console.error('Failed to apply review:', error)
+      } else {
+        console.error('Failed to apply review:', result.error)
         router.refresh()
       }
     })

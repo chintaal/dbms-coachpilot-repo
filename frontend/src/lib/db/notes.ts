@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { Database } from '@/types/supabase'
 
-type Note = Database['public']['Tables']['notes']['Row']
+// Use conditional types to handle cases where tables don't exist yet
+type Note = Database['public']['Tables']['notes'] extends { Row: infer R } ? R : any
 
 export async function listNotes() {
   const supabase = await createClient()
@@ -20,7 +21,8 @@ export async function listNotes() {
     .order('created_at', { ascending: false })
 
   if (error) {
-    throw error
+    // Convert Supabase error to plain Error for serialization
+    throw new Error(error.message || 'Database operation failed')
   }
 
   return data || []
@@ -44,7 +46,8 @@ export async function getNote(noteId: string) {
     .single()
 
   if (error) {
-    throw error
+    // Convert Supabase error to plain Error for serialization
+    throw new Error(error.message || 'Database operation failed')
   }
 
   return data
@@ -71,7 +74,8 @@ export async function createNote(rawText: string, sourceType?: string) {
     .single()
 
   if (error) {
-    throw error
+    // Convert Supabase error to plain Error for serialization
+    throw new Error(error.message || 'Database operation failed')
   }
 
   return data
@@ -94,6 +98,7 @@ export async function deleteNote(noteId: string) {
     .eq('user_id', user.id)
 
   if (error) {
-    throw error
+    // Convert Supabase error to plain Error for serialization
+    throw new Error(error.message || 'Database operation failed')
   }
 }

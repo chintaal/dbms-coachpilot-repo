@@ -14,7 +14,14 @@ export default async function DeckDetailPage({
 
   try {
     const deck = await getDeck(deckId)
-    const cards = await listCards(deckId)
+    let cards = []
+    try {
+      cards = await listCards(deckId)
+    } catch (error) {
+      // If tables don't exist yet, return empty array
+      console.error('Failed to load cards:', error)
+      cards = []
+    }
 
     return (
       <div>

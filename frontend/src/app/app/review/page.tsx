@@ -2,7 +2,14 @@ import { getReviewQueue } from '@/lib/db/reviews'
 import { ReviewCard } from './ReviewCard'
 
 export default async function ReviewPage() {
-  const cards = await getReviewQueue(20)
+  let cards = []
+  try {
+    cards = await getReviewQueue(20)
+  } catch (error) {
+    // If tables don't exist yet, return empty array
+    console.error('Failed to load review queue:', error)
+    cards = []
+  }
 
   return (
     <div>

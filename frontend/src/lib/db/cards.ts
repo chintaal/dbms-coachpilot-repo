@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { Database } from '@/types/supabase'
 
-type Card = Database['public']['Tables']['cards']['Row']
-type CardInsert = Database['public']['Tables']['cards']['Insert']
+// Use conditional types to handle cases where tables don't exist yet
+type Card = Database['public']['Tables']['cards'] extends { Row: infer R } ? R : any
+type CardInsert = Database['public']['Tables']['cards'] extends { Insert: infer I } ? I : any
 
 export async function listCards(deckId: string) {
   const supabase = await createClient()
@@ -22,7 +23,8 @@ export async function listCards(deckId: string) {
     .order('created_at', { ascending: false })
 
   if (error) {
-    throw error
+    // Convert Supabase error to plain Error for serialization
+    throw new Error(error.message || 'Database operation failed')
   }
 
   return data || []
@@ -46,7 +48,8 @@ export async function getCard(cardId: string) {
     .single()
 
   if (error) {
-    throw error
+    // Convert Supabase error to plain Error for serialization
+    throw new Error(error.message || 'Database operation failed')
   }
 
   return data
@@ -82,7 +85,8 @@ export async function createCard(
     .single()
 
   if (error) {
-    throw error
+    // Convert Supabase error to plain Error for serialization
+    throw new Error(error.message || 'Database operation failed')
   }
 
   return data
@@ -110,7 +114,8 @@ export async function updateCard(
     .single()
 
   if (error) {
-    throw error
+    // Convert Supabase error to plain Error for serialization
+    throw new Error(error.message || 'Database operation failed')
   }
 
   return data
@@ -133,6 +138,7 @@ export async function deleteCard(cardId: string) {
     .eq('user_id', user.id)
 
   if (error) {
-    throw error
+    // Convert Supabase error to plain Error for serialization
+    throw new Error(error.message || 'Database operation failed')
   }
 }

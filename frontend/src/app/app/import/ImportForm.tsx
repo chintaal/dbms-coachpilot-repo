@@ -14,12 +14,12 @@ export function ImportForm() {
     if (!rawText.trim()) return
 
     startTransition(async () => {
-      try {
-        await createNote(rawText.trim())
+      const result = await createNote(rawText.trim())
+      if (result.success) {
         setRawText('')
         router.refresh()
-      } catch (error) {
-        console.error('Failed to create note:', error)
+      } else {
+        console.error('Failed to create note:', result.error)
       }
     })
   }

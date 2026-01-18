@@ -5,7 +5,8 @@ import { createCard } from '@/app/actions/cards'
 import { useRouter } from 'next/navigation'
 import type { Database } from '@/types/supabase'
 
-type Deck = Database['public']['Tables']['decks']['Row']
+// Use conditional types to handle cases where tables don't exist yet
+type Deck = Database['public']['Tables']['decks'] extends { Row: infer R } ? R : any
 
 declare global {
   interface Window {
@@ -102,14 +103,14 @@ export function VoiceCardForm({ decks }: { decks: Deck[] }) {
     if (!selectedDeckId || !front || !back) return
 
     startTransition(async () => {
-      try {
-        await createCard(selectedDeckId, front, back)
+      const result = await createCard(selectedDeckId, front, back)
+      if (result.success) {
         setFront('')
         setBack('')
         setSelectedDeckId('')
         router.refresh()
-      } catch (error) {
-        console.error('Failed to create card:', error)
+      } else {
+        console.error('Failed to create card:', result.error)
       }
     })
   }
