@@ -1,0 +1,4 @@
+
+# Ignore oversized logo exports (use .webp/.svg instead)
+frontend/public/logos/coachpilot-full-lightmode.png
+frontend/public/logos/coachpilot-full-darkmode.png
