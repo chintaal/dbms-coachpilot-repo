@@ -25,10 +25,12 @@ You have two options:
 
 1. Go to your Supabase project dashboard
 2. Navigate to **SQL Editor**
-3. Open the migration file: `supabase/migrations/20260118214752_coachpilot_phase1.sql`
-4. Copy the entire contents
-5. Paste into the SQL Editor
-6. Click **Run** to execute
+3. Open and run the migration files in order:
+   - `supabase/migrations/20260118214752_coachpilot_phase1.sql` (Core tables)
+   - `supabase/migrations/20260118232333_coachpilot_phase2.sql` (Templates)
+   - `supabase/migrations/20260118235319_coachpilot_phase3.sql` (Stats)
+4. Copy the entire contents of each file
+5. Paste into the SQL Editor and run them one by one
 
 ### Step 2: Generate TypeScript Types
 
@@ -69,8 +71,11 @@ The app should now work! Navigate to `http://localhost:3000` and sign up to get 
 ## Troubleshooting
 
 ### "Could not find the table 'public.decks' in the schema cache"
+### "Could not find the table 'public.user_stats' in the schema cache"
 
-This error means the migration hasn't been applied yet. Follow **Step 1** above to apply the migration.
+This error means the migrations haven't been applied yet. Follow **Step 1** above to apply the migrations.
+- If you see `public.decks` error, apply Phase 1.
+- If you see `public.user_stats` error, apply Phase 3.
 
 ### Types are out of sync
 
@@ -82,19 +87,19 @@ Make sure your `.env.local` file has the correct Supabase URL and anon key.
 
 ## What Gets Created
 
-The migration creates:
+The migrations create:
 
-- **8 tables**: profiles, decks, notes, cards, card_state, reviews, quiz_sessions, quiz_items
+- **10 tables**: profiles, decks, notes, cards, card_state, reviews, quiz_sessions, quiz_items, card_templates, user_stats, daily_reviews
 - **Indexes**: Optimized for fast queries
 - **RLS policies**: Row-level security for all tables
-- **Triggers**: Auto-create profile and card_state
-- **RPC function**: `apply_review()` for atomic review processing
+- **Triggers**: Auto-create profile and card_state, update stats
+- **RPC functions**: `apply_review()`, `get_user_statistics()`
 
 ## Verification
 
 After applying the migration, you can verify in Supabase Dashboard:
 
 1. Go to **Table Editor**
-2. You should see all 8 tables listed
-3. Check **Database > Functions** to see `apply_review` function
+2. You should see all tables listed
+3. Check **Database > Functions** to see `apply_review` and `get_user_statistics` functions
 4. Check **Authentication > Policies** to see RLS policies

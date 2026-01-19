@@ -1,6 +1,8 @@
 import { listDecks } from '@/lib/db/decks'
-import Link from 'next/link'
 import { CreateDeckModal } from './CreateDeckModal'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { BookOpen } from 'lucide-react'
+import { DeckList } from './DeckList'
 
 export default async function DashboardPage() {
   let decks = []
@@ -50,37 +52,15 @@ export default async function DashboardPage() {
       )}
 
       {decks.length === 0 && !dbError && (
-        <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-12 text-center">
-          <p className="text-gray-500 dark:text-gray-400 mb-4">
-            You don't have any decks yet.
-          </p>
-          <CreateDeckModal />
-        </div>
+        <EmptyState
+          icon={<BookOpen className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
+          title="No decks yet"
+          description="Create your first deck to start organizing your flashcards."
+          action={<CreateDeckModal />}
+        />
       )}
 
-      {decks.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {decks.map((deck) => (
-            <Link
-              key={deck.id}
-              href={`/app/decks/${deck.id}`}
-              className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
-            >
-              <h2 className="text-xl font-semibold text-black dark:text-zinc-50 mb-2">
-                {deck.title}
-              </h2>
-              {deck.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                  {deck.description}
-                </p>
-              )}
-              <p className="text-xs text-gray-500 dark:text-gray-500 mt-4">
-                Created {new Date(deck.created_at).toLocaleDateString()}
-              </p>
-            </Link>
-          ))}
-        </div>
-      )}
+      {decks.length > 0 && <DeckList decks={decks} />}
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { createCard } from '@/app/actions/cards'
 import { useRouter } from 'next/navigation'
 import { RichTextEditor } from '@/components/editor/RichTextEditor'
 import { ImageUpload } from '@/components/upload/ImageUpload'
+import { useToast } from '@/hooks/useToast'
 import type { Database } from '@/types/supabase'
 
 // Use conditional types to handle cases where tables don't exist yet
@@ -22,6 +23,7 @@ export function CreateCardForm({ deckId, templates }: { deckId: string; template
   const [tags, setTags] = useState('')
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+  const toast = useToast()
 
   const handleTemplateChange = (templateId: string) => {
     setSelectedTemplateId(templateId)
@@ -66,9 +68,10 @@ export function CreateCardForm({ deckId, templates }: { deckId: string; template
         setBackHtml('')
         setBackImageUrl(null)
         setTags('')
+        toast.success('Card created successfully!')
         router.refresh()
       } else {
-        console.error('Failed to create card:', result.error)
+        toast.error('Failed to create card', result.error)
       }
     })
   }

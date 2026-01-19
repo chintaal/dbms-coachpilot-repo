@@ -3,6 +3,7 @@
 import { useState, useTransition, useOptimistic } from 'react'
 import { deleteCard } from '@/app/actions/cards'
 import { useRouter } from 'next/navigation'
+import { useToast } from '@/hooks/useToast'
 import type { Database } from '@/types/supabase'
 
 // Use conditional types to handle cases where tables don't exist yet
@@ -11,6 +12,7 @@ type Card = Database['public']['Tables']['cards'] extends { Row: infer R } ? R :
 export function CardList({ cards, deckId }: { cards: Card[]; deckId: string }) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+  const toast = useToast()
   const [optimisticCards, setOptimisticCards] = useOptimistic(
     cards,
     (state, cardId: string) => state.filter((c) => c.id !== cardId)
@@ -21,9 +23,10 @@ export function CardList({ cards, deckId }: { cards: Card[]; deckId: string }) {
       setOptimisticCards(cardId)
       const result = await deleteCard(cardId, deckId)
       if (result.success) {
+        toast.success('Card deleted')
         router.refresh()
       } else {
-        console.error('Failed to delete card:', result.error)
+        toast.error('Failed to delete card', result.error)
         router.refresh() // Refresh to restore state on error
       }
     })

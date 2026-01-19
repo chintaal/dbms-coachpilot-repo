@@ -32,6 +32,7 @@ export function RichTextEditor({
         },
       }),
     ],
+    immediatelyRender: false,
     content,
     onUpdate: ({ editor }) => {
       const html = editor.getHTML()
