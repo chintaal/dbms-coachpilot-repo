@@ -15,6 +15,7 @@ import {
   Search,
   Plus,
 } from 'lucide-react'
+import { modalContent, modalBackdrop, springSmooth } from '@/lib/animations/variants'
 
 const commands = [
   { id: 'dashboard', label: 'Go to Dashboard', href: '/app', icon: LayoutDashboard, keywords: ['home', 'main'] },
@@ -60,23 +61,30 @@ export function CommandPalette() {
       {open && (
         <>
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            variants={modalBackdrop}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             onClick={() => setOpen(false)}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-md"
           />
-          <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] px-4">
+          <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] px-4 pointer-events-none">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="w-full max-w-2xl rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xl overflow-hidden"
+              variants={modalContent}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="w-full max-w-2xl rounded-xl glass-strong border border-gray-200/50 dark:border-gray-800/50 shadow-2xl overflow-hidden pointer-events-auto"
+              style={{ transformStyle: 'preserve-3d' }}
             >
               <Command className="rounded-lg">
-                <div className="flex items-center border-b border-gray-200 dark:border-gray-800 px-4">
-                  <Search className="mr-2 h-4 w-4 text-gray-400" />
+                <div className="flex items-center border-b border-gray-200/50 dark:border-gray-800/50 px-4 bg-gradient-glass">
+                  <motion.div
+                    animate={{ rotate: [0, 360] }}
+                    transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                  >
+                    <Search className="mr-2 h-4 w-4 text-gray-400" />
+                  </motion.div>
                   <Command.Input
                     placeholder="Type a command or search..."
                     className="flex h-12 w-full bg-transparent outline-none placeholder:text-gray-400 text-gray-900 dark:text-gray-100"
@@ -87,19 +95,30 @@ export function CommandPalette() {
                   <Command.Empty className="py-6 text-center text-sm text-gray-500">
                     No results found.
                   </Command.Empty>
-                  {commands.map((command) => (
-                    <Command.Item
+                  {commands.map((command, index) => (
+                    <motion.div
                       key={command.id}
-                      onSelect={() => handleSelect(command)}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer aria-selected:bg-blue-50 dark:aria-selected:bg-blue-900/20 aria-selected:text-blue-600 dark:aria-selected:text-blue-400"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
                     >
-                      <command.icon className="h-4 w-4" />
-                      <span>{command.label}</span>
-                    </Command.Item>
+                      <Command.Item
+                        onSelect={() => handleSelect(command)}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all aria-selected:glass aria-selected:text-blue-600 dark:aria-selected:text-blue-400 aria-selected:glow-blue hover:glass-subtle"
+                      >
+                        <motion.div
+                          whileHover={{ rotate: 360 }}
+                          transition={{ duration: 0.5 }}
+                        >
+                          <command.icon className="h-4 w-4" />
+                        </motion.div>
+                        <span>{command.label}</span>
+                      </Command.Item>
+                    </motion.div>
                   ))}
                 </Command.List>
-                <div className="border-t border-gray-200 dark:border-gray-800 px-4 py-2 text-xs text-gray-500">
-                  <kbd className="px-2 py-1 rounded bg-gray-100 dark:bg-gray-800">Esc</kbd> to close
+                <div className="border-t border-gray-200/50 dark:border-gray-800/50 px-4 py-2 text-xs text-gray-500 glass-subtle">
+                  <kbd className="px-2 py-1 rounded glass">Esc</kbd> to close
                 </div>
               </Command>
             </motion.div>

@@ -56,11 +56,11 @@ export function ReviewCard({ initialCards }: { initialCards: CardWithState[] }) 
       <>
         <Celebration show={showCelebration} onComplete={() => setShowCelebration(false)} />
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-12 text-center"
+          initial={{ opacity: 0, scale: 0.9, rotateY: -15 }}
+          animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+          className="rounded-xl glass-strong border border-gray-200/50 dark:border-gray-800/50 p-12 text-center shadow-2xl"
         >
-          <p className="text-gray-500 dark:text-gray-400 mb-4">
+          <p className="text-gray-500 dark:text-gray-400 mb-4 text-lg">
             All done! No more cards to review.
           </p>
           <Button onClick={() => router.refresh()}>
@@ -136,77 +136,140 @@ export function ReviewCard({ initialCards }: { initialCards: CardWithState[] }) 
     </div>
   )
 
+  // Show next 2 cards in stack
+  const nextCards = optimisticCards.slice(currentIndex + 1, currentIndex + 3)
+
   return (
     <>
       <Celebration show={showCelebration} onComplete={() => setShowCelebration(false)} />
       <motion.div
         key={currentCard.id}
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -20 }}
-        className="space-y-6"
+        initial={{ opacity: 0, x: 20, rotateY: -15 }}
+        animate={{ opacity: 1, x: 0, rotateY: 0 }}
+        exit={{ opacity: 0, x: -20, rotateY: 15, scale: 0.9 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+        className="space-y-6 perspective-2000"
       >
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex items-center justify-between glass-subtle rounded-lg p-3">
+          <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">
             Card {currentIndex + 1} of {optimisticCards.length}
           </div>
           <ReviewProgress current={currentIndex} total={optimisticCards.length} />
         </div>
 
-        <div ref={ref} className="cursor-grab active:cursor-grabbing">
-          <CardFlip isFlipped={isRevealed} front={frontContent} back={backContent} />
+        {/* 3D Card Stack */}
+        <div className="relative perspective-2000" style={{ minHeight: '300px' }}>
+          {/* Stack Background Cards */}
+          {nextCards.map((card, idx) => (
+            <motion.div
+              key={card.id}
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{
+                opacity: 0.3 - idx * 0.1,
+                scale: 0.95 - idx * 0.05,
+                y: (idx + 1) * 10,
+                rotateY: (idx + 1) * 5,
+                z: -(idx + 1) * 20,
+              }}
+              className="absolute inset-0 rounded-xl glass border border-gray-200/30 dark:border-gray-800/30"
+              style={{
+                transformStyle: 'preserve-3d',
+                pointerEvents: 'none',
+              }}
+            />
+          ))}
+
+          {/* Current Card */}
+          <motion.div
+            ref={ref}
+            className="relative cursor-grab active:cursor-grabbing"
+            drag="x"
+            dragConstraints={{ left: -100, right: 100 }}
+            dragElastic={0.2}
+            onDragEnd={(_, info) => {
+              if (info.offset.x > 50) {
+                handleRating(3) // Easy
+              } else if (info.offset.x < -50) {
+                handleRating(0) // Again
+              }
+            }}
+            whileDrag={(_, info) => ({
+              scale: 1.05,
+              rotateZ: info.offset.x / 10,
+            })}
+          >
+            <CardFlip isFlipped={isRevealed} front={frontContent} back={backContent} />
+          </motion.div>
         </div>
 
         {!isRevealed ? (
-          <Button
-            onClick={() => setIsRevealed(true)}
-            className="w-full"
-            size="lg"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
           >
-            Reveal Answer
-          </Button>
+            <Button
+              onClick={() => setIsRevealed(true)}
+              className="w-full glass-strong glow-blue"
+              size="lg"
+            >
+              Reveal Answer
+            </Button>
+          </motion.div>
         ) : (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
             className="space-y-3"
           >
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 text-center mb-4">
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 text-center mb-4 glass-subtle rounded-lg p-2">
               How well did you know this?
             </p>
             <div className="grid grid-cols-2 gap-3">
-              <Button
-                onClick={() => handleRating(0)}
-                disabled={isPending}
-                variant="danger"
-                isLoading={isPending}
-              >
-                Again
-              </Button>
-              <Button
-                onClick={() => handleRating(1)}
-                disabled={isPending}
-                variant="secondary"
-                isLoading={isPending}
-              >
-                Hard
-              </Button>
-              <Button
-                onClick={() => handleRating(2)}
-                disabled={isPending}
-                variant="primary"
-                isLoading={isPending}
-              >
-                Good
-              </Button>
-              <Button
-                onClick={() => handleRating(3)}
-                disabled={isPending}
-                variant="primary"
-                isLoading={isPending}
-              >
-                Easy
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={() => handleRating(0)}
+                  disabled={isPending}
+                  variant="danger"
+                  isLoading={isPending}
+                  className="w-full glow-red"
+                >
+                  Again
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={() => handleRating(1)}
+                  disabled={isPending}
+                  variant="secondary"
+                  isLoading={isPending}
+                  className="w-full"
+                >
+                  Hard
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={() => handleRating(2)}
+                  disabled={isPending}
+                  variant="primary"
+                  isLoading={isPending}
+                  className="w-full glow-blue"
+                >
+                  Good
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={() => handleRating(3)}
+                  disabled={isPending}
+                  variant="primary"
+                  isLoading={isPending}
+                  className="w-full glow-green"
+                >
+                  Easy
+                </Button>
+              </motion.div>
             </div>
             <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
               Swipe to rate: ← Again, → Easy, ↑ Good, ↓ Hard

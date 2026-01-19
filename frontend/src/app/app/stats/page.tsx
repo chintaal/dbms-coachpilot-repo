@@ -32,8 +32,8 @@ export default async function StatsPage() {
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-black dark:text-zinc-50 mb-8">Statistics</h1>
+    <div className="space-y-8">
+      <h1 className="text-3xl font-bold text-black dark:text-zinc-50">Statistics</h1>
       <div className="space-y-6">
         <OverviewCards stats={stats} />
         <ActivityChart data={activity} />

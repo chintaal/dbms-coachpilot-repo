@@ -1,8 +1,10 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useMotionValue, useSpring } from 'framer-motion'
 import { Card } from '@/components/ui/Card'
 import { Flame, BookOpen, Target, Clock } from 'lucide-react'
+import { staggerContainer, springBounce } from '@/lib/animations/variants'
+import { useState, useRef, useEffect } from 'react'
 
 interface OverviewCardsProps {
   stats: {
@@ -45,32 +47,82 @@ export function OverviewCards({ stats }: OverviewCardsProps) {
     },
   ]
 
+  const AnimatedNumber = ({ value, delay = 0 }: { value: number | string; delay?: number }) => {
+    const [displayValue, setDisplayValue] = useState(0)
+    const numValue = typeof value === 'string' ? parseFloat(value) || 0 : value
+
+    useEffect(() => {
+      if (typeof value === 'number') {
+        const timer = setTimeout(() => {
+          const duration = 2000
+          const steps = 60
+          const increment = numValue / steps
+          let current = 0
+          const interval = setInterval(() => {
+            current += increment
+            if (current >= numValue) {
+              setDisplayValue(numValue)
+              clearInterval(interval)
+            } else {
+              setDisplayValue(Math.floor(current))
+            }
+          }, duration / steps)
+          return () => clearInterval(interval)
+        }, delay)
+        return () => clearTimeout(timer)
+      }
+    }, [value, numValue, delay])
+
+    return <span>{typeof value === 'string' ? value : Math.floor(displayValue)}</span>
+  }
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <motion.div
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+      className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
+    >
       {cards.map((card, index) => (
         <motion.div
           key={card.title}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
+          variants={springBounce}
+          custom={index}
         >
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
+          <Card hover variant="glass-strong" className="p-6 group relative overflow-hidden">
+            <motion.div
+              className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${card.bgColor}`}
+              initial={false}
+            />
+            <div className="relative z-10 flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
                   {card.title}
                 </p>
-                <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
-                  {card.value}
-                </p>
+                <motion.p
+                  className="text-3xl font-bold text-gray-900 dark:text-gray-100"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: index * 0.1, type: 'spring', stiffness: 200, damping: 15 }}
+                >
+                  {typeof card.value === 'number' ? (
+                    <AnimatedNumber value={card.value} delay={index * 100} />
+                  ) : (
+                    card.value
+                  )}
+                </motion.p>
               </div>
-              <div className={`rounded-full p-3 ${card.bgColor}`}>
+              <motion.div
+                className={`rounded-full p-3 ${card.bgColor} glass-subtle`}
+                whileHover={{ rotate: 360, scale: 1.1 }}
+                transition={{ duration: 0.5 }}
+              >
                 <card.icon className={`h-6 w-6 ${card.color}`} />
-              </div>
+              </motion.div>
             </div>
           </Card>
         </motion.div>
       ))}
-    </div>
+    </motion.div>
   )
 }

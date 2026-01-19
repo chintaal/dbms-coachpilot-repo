@@ -43,11 +43,12 @@ export function HeatmapCalendar({ data }: HeatmapCalendarProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
+      initial={{ opacity: 0, y: 20, rotateX: -10 }}
+      animate={{ opacity: 1, y: 0, rotateX: 0 }}
+      transition={{ delay: 0.3, type: 'spring', stiffness: 200, damping: 25 }}
+      style={{ transformStyle: 'preserve-3d' }}
     >
-      <Card className="p-6">
+      <Card variant="glass-strong" className="p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Activity Heatmap
         </h3>
@@ -59,22 +60,35 @@ export function HeatmapCalendar({ data }: HeatmapCalendarProps) {
                 return (
                   <motion.div
                     key={day.toISOString()}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: (weekIndex * 7 + dayIndex) * 0.01 }}
-                    className={`w-3 h-3 rounded-sm ${intensityColors[intensity]}`}
+                    initial={{ scale: 0, rotateY: -90 }}
+                    animate={{ scale: 1, rotateY: 0 }}
+                    transition={{
+                      delay: (weekIndex * 7 + dayIndex) * 0.01,
+                      type: 'spring',
+                      stiffness: 200,
+                      damping: 20,
+                    }}
+                    whileHover={{ scale: 1.5, z: 50 }}
+                    className={`w-3 h-3 rounded-sm cursor-pointer transition-all ${intensityColors[intensity]}`}
                     title={`${format(day, 'MMM d')}: ${intensity > 0 ? getIntensity(day) * 5 : 0} cards`}
+                    style={{ transformStyle: 'preserve-3d' }}
                   />
                 )
               })}
             </div>
           ))}
         </div>
-        <div className="flex items-center justify-between mt-4 text-xs text-gray-600 dark:text-gray-400">
+        <div className="flex items-center justify-between mt-4 text-xs text-gray-600 dark:text-gray-400 glass-subtle rounded-lg p-3">
           <span>Less</span>
           <div className="flex gap-1">
             {intensityColors.map((color, i) => (
-              <div key={i} className={`w-3 h-3 rounded-sm ${color}`} />
+              <motion.div
+                key={i}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.5 + i * 0.1 }}
+                className={`w-3 h-3 rounded-sm ${color}`}
+              />
             ))}
           </div>
           <span>More</span>

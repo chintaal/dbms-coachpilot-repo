@@ -1,7 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ReactNode } from 'react'
+import { ReactNode, useState, useRef } from 'react'
+import { magneticHover, magneticTap } from '@/lib/animations/variants'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost'
@@ -30,26 +31,58 @@ export function Button({
   isLoading = false,
   disabled,
   className = '',
+  onClick,
   ...props
 }: ButtonProps) {
+  const [ripples, setRipples] = useState<Array<{ x: number; y: number; id: number }>>([])
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (disabled || isLoading || !buttonRef.current) return
+
+    const rect = buttonRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const id = Date.now()
+
+    setRipples((prev) => [...prev, { x, y, id }])
+
+    setTimeout(() => {
+      setRipples((prev) => prev.filter((ripple) => ripple.id !== id))
+    }, 600)
+
+    onClick?.(e)
+  }
+
   return (
     <motion.button
-      whileHover={{ scale: disabled || isLoading ? 1 : 1.02 }}
-      whileTap={{ scale: disabled || isLoading ? 1 : 0.98 }}
+      ref={buttonRef}
+      whileHover={disabled || isLoading ? {} : magneticHover}
+      whileTap={disabled || isLoading ? {} : magneticTap}
       disabled={disabled || isLoading}
+      onClick={handleClick}
       className={`
         ${variantClasses[variant]}
         ${sizeClasses[size]}
         rounded-lg font-medium
         focus:outline-none focus:ring-2 focus:ring-offset-2
         disabled:opacity-50 disabled:cursor-not-allowed
-        transition-colors
+        transition-colors relative overflow-hidden
         ${className}
       `}
       {...props}
     >
+      {ripples.map((ripple) => (
+        <motion.span
+          key={ripple.id}
+          className="absolute rounded-full bg-white/30 pointer-events-none"
+          initial={{ width: 0, height: 0, x: ripple.x, y: ripple.y }}
+          animate={{ width: 200, height: 200, x: ripple.x - 100, y: ripple.y - 100, opacity: [1, 0] }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+        />
+      ))}
       {isLoading ? (
-        <span className="flex items-center gap-2">
+        <span className="flex items-center gap-2 relative z-10">
           <motion.div
             className="h-4 w-4 border-2 border-current border-t-transparent rounded-full"
             animate={{ rotate: 360 }}
@@ -58,7 +91,7 @@ export function Button({
           Loading...
         </span>
       ) : (
-        children
+        <span className="relative z-10">{children}</span>
       )}
     </motion.button>
   )

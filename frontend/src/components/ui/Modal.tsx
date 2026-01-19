@@ -52,28 +52,31 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-md"
           />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.9, y: 20, rotateX: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20, rotateX: -10 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className={`relative w-full ${sizeClasses[size]} rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xl`}
+              className={`relative w-full ${sizeClasses[size]} rounded-xl glass-strong border border-gray-200/50 dark:border-gray-800/50 shadow-2xl pointer-events-auto`}
               onClick={(e) => e.stopPropagation()}
+              style={{ transformStyle: 'preserve-3d' }}
             >
               {title && (
                 <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-6 py-4">
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                     {title}
                   </h2>
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.1, rotate: 90 }}
+                    whileTap={{ scale: 0.9 }}
                     onClick={onClose}
-                    className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    className="rounded-lg p-1 text-gray-400 hover:glass hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                   >
                     <X className="h-5 w-5" />
-                  </button>
+                  </motion.button>
                 </div>
               )}
               <div className="p-6">{children}</div>

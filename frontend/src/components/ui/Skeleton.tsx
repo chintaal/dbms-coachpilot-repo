@@ -8,7 +8,7 @@ interface SkeletonProps {
 }
 
 export function Skeleton({ className = '', variant = 'rectangular' }: SkeletonProps) {
-  const baseClasses = 'bg-gray-200 dark:bg-gray-800 animate-pulse'
+  const baseClasses = 'glass-subtle relative overflow-hidden'
   
   const variantClasses = {
     text: 'h-4 rounded',
@@ -22,17 +22,27 @@ export function Skeleton({ className = '', variant = 'rectangular' }: SkeletonPr
       initial={{ opacity: 0.6 }}
       animate={{ opacity: [0.6, 1, 0.6] }}
       transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-    />
+    >
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+        animate={{ x: ['-100%', '100%'] }}
+        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+      />
+    </motion.div>
   )
 }
 
 export function SkeletonCard() {
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-xl glass-strong border border-gray-200/50 dark:border-gray-800/50 p-6"
+    >
       <Skeleton variant="text" className="h-6 w-3/4 mb-4" />
       <Skeleton variant="text" className="h-4 w-full mb-2" />
       <Skeleton variant="text" className="h-4 w-2/3" />
-    </div>
+    </motion.div>
   )
 }
 
